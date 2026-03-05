@@ -571,7 +571,7 @@
 
   <header>
     <h1>Samos Notes</h1>
-    <span class="version">v2.0</span>
+    <span class="version">v2.4</span>
     <div class="header-actions">
       <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
       <button class="btn" onclick="exportJSON()">&#8595; JSON</button>
@@ -680,17 +680,18 @@
     recognition.interimResults = true;
 
     recognition.onresult = function(e) {
+      // Rebuild EVERYTHING from scratch on each event — safest approach
+      var final = '';
       var interim = '';
-      // Only iterate from resultIndex to avoid re-processing old results
-      for (var i = e.resultIndex; i < e.results.length; i++) {
-        var t = e.results[i][0].transcript;
+      for (var i = 0; i < e.results.length; i++) {
         if (e.results[i].isFinal) {
-          finalTranscript += t + ' ';
+          final += e.results[i][0].transcript + ' ';
         } else {
-          interim += t;
+          interim += e.results[i][0].transcript;
         }
       }
-      document.getElementById('transcriptLive').textContent = finalTranscript + interim;
+      finalTranscript = final;
+      document.getElementById('transcriptLive').textContent = (final + interim).trim();
     };
 
     recognition.onerror = function(e) {
