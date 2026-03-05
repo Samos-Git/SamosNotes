@@ -670,7 +670,6 @@
   }
 
   function startRecording() {
-    // Reset transcript state completely
     finalTranscript = '';
     document.getElementById('transcriptLive').textContent = '';
     document.getElementById('recorderControls').style.display = 'none';
@@ -681,35 +680,37 @@
     recognition.interimResults = true;
 
     recognition.onresult = function(e) {
-      // Rebuild from scratch each event to avoid duplication
-      // finalTranscript accumulates confirmed text
-      // interim is only from the current unconfirmed result
-      var newFinal = '';
-      var interim  = '';
-
+      var interim = '';
+      // Only iterate from resultIndex to avoid re-processing old results
       for (var i = e.resultIndex; i < e.results.length; i++) {
+        var t = e.results[i][0].transcript;
         if (e.results[i].isFinal) {
-          newFinal += e.results[i][0].transcript;
+          finalTranscript += t + ' ';
         } else {
-          interim += e.results[i][0].transcript;
+          interim += t;
         }
       }
-
-      if (newFinal) finalTranscript += newFinal + ' ';
       document.getElementById('transcriptLive').textContent = finalTranscript + interim;
     };
 
     recognition.onerror = function(e) {
-      if (e.error === 'no-speech') return; // ignore silence
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
       stopRecording();
       showToast('Erreur micro : ' + e.error);
     };
 
-    // Auto-restart on end ONLY if still supposed to be recording
-    // Use a named handler so we can remove it cleanly
+    // On natural end: do NOT restart — Chrome with continuous=true rarely ends mid-speech.
+    // If it does end, just show what we have so the user can save.
     recognition.onend = function() {
       if (isRecording) {
-        try { recognition.start(); } catch(err) {}
+        // Session ended unexpectedly — stop cleanly
+        isRecording = false;
+        recognition = null;
+        stopWaveAnim();
+        updateRecordingUI(false);
+        if (finalTranscript.trim()) {
+          document.getElementById('recorderControls').style.display = 'flex';
+        }
       }
     };
 
