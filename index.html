@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VocalNotes — Notes vocales</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --accent: #e8c96d;
+      --accent2: #c4a24a;
+      --text: #f0ede6;
+      --text-dim: #7a7670;
+      --red: #e05c5c;
+      --green: #5ce08a;
+      --radius: 4px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.4;
+    }
+
+    .app {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 48px 24px;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+    }
+    header .version {
+      color: var(--text-dim);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    .header-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+      font-weight: 500;
+    }
+    .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); color: #0d0d0d; }
+    .btn-sm { padding: 5px 10px; font-size: 10px; }
+
+    /* Group selector */
+    .group-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .group-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+    .group-select-wrap {
+      flex: 1;
+      min-width: 180px;
+      position: relative;
+    }
+    .group-select {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 9px 36px 9px 12px;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .group-select:focus { border-color: var(--accent); }
+    .group-select option { background: var(--surface2); }
+    .group-select-arrow {
+      position: absolute;
+      right: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: var(--text-dim);
+      font-size: 10px;
+    }
+    .add-group-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .add-group-input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 7px 12px;
+      outline: none;
+      width: 160px;
+      transition: border-color 0.15s;
+    }
+    .add-group-input:focus { border-color: var(--accent); }
+    .add-group-input::placeholder { color: var(--text-dim); }
+    .group-required-hint {
+      font-size: 11px;
+      color: var(--red);
+      display: none;
+      margin-top: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    /* Recorder */
+    .recorder-zone {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .recorder-zone::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .recorder-zone.recording::before { opacity: 1; }
+
+    .recorder-group-badge {
+      text-align: center;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .group-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 4px 12px;
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .group-badge .badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .group-badge.none { color: var(--text-dim); }
+    .group-badge.none .badge-dot { background: var(--text-dim); }
+
+    .mic-button {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--surface2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      transition: all 0.2s;
+    }
+    .mic-button:hover:not(.disabled) { border-color: var(--accent); }
+    .mic-button.recording {
+      border-color: var(--red);
+      background: rgba(224, 92, 92, 0.08);
+      animation: pulse 1.5s infinite;
+    }
+    .mic-button.disabled { opacity: 0.35; cursor: not-allowed; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(224,92,92,0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(224,92,92,0); }
+    }
+    .mic-icon { font-size: 28px; }
+
+    .waveform {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      margin-bottom: 20px;
+    }
+    .waveform-bar {
+      width: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      transition: height 0.1s;
+    }
+    .recording .waveform-bar { background: var(--red); }
+
+    .recorder-status {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .recording .recorder-status { color: var(--red); }
+
+    .transcript-live {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      min-height: 60px;
+      font-size: 13px;
+      color: var(--text);
+      font-style: italic;
+      line-height: 1.7;
+    }
+    .transcript-live:empty::before {
+      content: 'La transcription apparaîtra ici\2026';
+      color: var(--text-dim);
+      font-style: normal;
+    }
+
+    .recorder-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    /* Filter tabs */
+    .filter-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+    .filter-tab {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .filter-tab:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-tab.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d0d0d;
+      font-weight: 500;
+    }
+    .filter-tab .tab-count {
+      background: rgba(0,0,0,0.15);
+      border-radius: 2px;
+      padding: 1px 5px;
+      font-size: 9px;
+    }
+    .filter-tab:not(.active) .tab-count { background: var(--surface2); }
+    .del-grp-btn {
+      opacity: 0;
+      font-size: 9px;
+      transition: opacity 0.1s;
+      cursor: pointer;
+      line-height: 1;
+      margin-left: 2px;
+    }
+    .filter-tab:hover .del-grp-btn { opacity: 0.6; }
+    .filter-tab:hover .del-grp-btn:hover { opacity: 1; color: var(--red); }
+
+    /* Notes */
+    .notes-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .notes-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--text-dim);
+    }
+    .notes-count {
+      background: var(--surface2);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 10px;
+      padding: 2px 8px;
+      letter-spacing: 0.1em;
+    }
+
+    .notes-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .group-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 4px;
+    }
+    .group-divider-label {
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .group-divider-label.dim { color: var(--text-dim); }
+    .group-divider-line { flex: 1; height: 1px; background: var(--border); }
+
+    .note-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: start;
+      transition: border-color 0.15s;
+      animation: slideIn 0.2s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .note-card:hover { border-color: #3a3a3a; }
+
+    .note-meta {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .note-meta .dot { color: var(--border); }
+    .note-group-tag {
+      background: rgba(232,201,109,0.1);
+      border: 1px solid rgba(232,201,109,0.2);
+      color: var(--accent2);
+      border-radius: 2px;
+      padding: 1px 7px;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .note-text {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .note-text[contenteditable="true"] {
+      outline: none;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 2px;
+    }
+    .note-text[contenteditable="true"]:focus { border-bottom-color: var(--accent); }
+
+    .note-actions { display: flex; gap: 6px; }
+    .note-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+      line-height: 1;
+    }
+    .note-btn:hover { opacity: 1; }
+    .note-btn.delete:hover { color: var(--red); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px;
+      color: var(--text-dim);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+    .empty-state p { font-size: 12px; letter-spacing: 0.05em; margin-top: 8px; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--accent);
+      color: #0d0d0d;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      z-index: 999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    .warning {
+      background: rgba(224,92,92,0.07);
+      border: 1px solid rgba(224,92,92,0.2);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 12px;
+      color: var(--red);
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .search-bar {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .search-bar:focus { border-color: var(--accent); }
+    .search-bar::placeholder { color: var(--text-dim); }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>VocalNotes</h1>
+    <span class="version">v2.0</span>
+    <div class="header-actions">
+      <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
+      <button class="btn" onclick="exportJSON()">&#8595; JSON</button>
+      <button class="btn" onclick="clearAll()">&#x2715; Effacer</button>
+    </div>
+  </header>
+
+  <!-- Group selector -->
+  <div class="group-section">
+    <span class="group-label">Groupe</span>
+    <div class="group-select-wrap">
+      <select class="group-select" id="groupSelect" onchange="onGroupSelectChange()">
+        <option value="">&#8212; Sélectionner un groupe &#8212;</option>
+      </select>
+      <span class="group-select-arrow">&#9660;</span>
+    </div>
+    <div class="add-group-row">
+      <input class="add-group-input" id="newGroupInput" type="text" placeholder="Nouveau groupe…" maxlength="40"
+        onkeydown="if(event.key==='Enter') addGroup()">
+      <button class="btn btn-sm btn-accent" onclick="addGroup()">+ Ajouter</button>
+    </div>
+  </div>
+  <div class="group-required-hint" id="groupHint">&#9888; Veuillez sélectionner un groupe avant d'enregistrer.</div>
+
+  <!-- Recorder -->
+  <div class="recorder-zone" id="recorderZone">
+    <div class="recorder-group-badge">
+      <div class="group-badge none" id="recorderBadge">
+        <span class="badge-dot"></span>
+        <span id="recorderBadgeText">Aucun groupe sélectionné</span>
+      </div>
+    </div>
+
+    <div class="mic-button disabled" id="micBtn" onclick="toggleRecording()">
+      <span class="mic-icon" id="micIcon">&#127897;&#65039;</span>
+    </div>
+
+    <div class="waveform" id="waveform"></div>
+    <div class="recorder-status" id="recorderStatus">Sélectionnez un groupe pour commencer</div>
+    <div class="transcript-live" id="transcriptLive"></div>
+
+    <div class="recorder-controls" id="recorderControls" style="display:none">
+      <button class="btn btn-accent" onclick="saveNote()">&#10003; Sauvegarder la note</button>
+      <button class="btn" onclick="discardNote()">&#x2715; Annuler</button>
+    </div>
+  </div>
+
+  <div class="warning" id="warningBrowser">
+    &#9888; Votre navigateur ne supporte pas la reconnaissance vocale. Essayez Chrome ou Edge.
+  </div>
+
+  <!-- Notes -->
+  <div class="notes-header">
+    <h2>Notes enregistrées</h2>
+    <span class="notes-count" id="notesCount">0</span>
+  </div>
+
+  <input class="search-bar" id="searchBar" type="text" placeholder="&#128269;  Rechercher dans les notes…" oninput="renderNotes()">
+
+  <div class="filter-row" id="filterRow"></div>
+  <div class="notes-list" id="notesList"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  var notes       = JSON.parse(localStorage.getItem('vocalnotes_v2') || '[]');
+  var groups      = JSON.parse(localStorage.getItem('vocalnotes_groups') || '[]');
+  var activeGroup = '';
+  var filterGroup = null;
+  var recognition = null;
+  var isRecording = false;
+  var currentTranscript = '';
+  var waveInterv  = null;
+
+  // waveform bars
+  var waveformEl = document.getElementById('waveform');
+  for (var i = 0; i < 28; i++) {
+    var bar = document.createElement('div');
+    bar.className = 'waveform-bar';
+    bar.style.height = '4px';
+    waveformEl.appendChild(bar);
+  }
+
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) document.getElementById('warningBrowser').style.display = 'block';
+
+  function toggleRecording() {
+    if (!SR) return;
+    if (!activeGroup) {
+      var hint = document.getElementById('groupHint');
+      hint.style.display = 'block';
+      setTimeout(function(){ hint.style.display = 'none'; }, 3000);
+      return;
+    }
+    isRecording ? stopRecording() : startRecording();
+  }
+
+  function startRecording() {
+    recognition = new SR();
+    recognition.lang = 'fr-FR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    currentTranscript = '';
+    document.getElementById('transcriptLive').textContent = '';
+
+    recognition.onresult = function(e) {
+      var interim = '', final = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        var t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) final += t + ' ';
+        else interim += t;
+      }
+      currentTranscript += final;
+      document.getElementById('transcriptLive').textContent = currentTranscript + interim;
+    };
+    recognition.onerror = function(e) { stopRecording(); showToast('Erreur micro : ' + e.error); };
+    recognition.onend   = function() { if (isRecording) recognition.start(); };
+    recognition.start();
+    isRecording = true;
+    updateRecordingUI(true);
+    startWaveAnim();
+  }
+
+  function stopRecording() {
+    isRecording = false;
+    if (recognition) { recognition.onend = null; recognition.stop(); }
+    stopWaveAnim();
+    updateRecordingUI(false);
+    if (currentTranscript.trim()) document.getElementById('recorderControls').style.display = 'flex';
+  }
+
+  function updateRecordingUI(rec) {
+    var zone   = document.getElementById('recorderZone');
+    var btn    = document.getElementById('micBtn');
+    var icon   = document.getElementById('micIcon');
+    var status = document.getElementById('recorderStatus');
+    if (rec) {
+      zone.classList.add('recording');
+      btn.classList.add('recording');
+      btn.classList.remove('disabled');
+      icon.textContent = '\u23F9';
+      status.textContent = '\u25CF Enregistrement en cours\u2026';
+    } else {
+      zone.classList.remove('recording');
+      btn.classList.remove('recording');
+      icon.innerHTML = '&#127897;&#65039;';
+      status.textContent = activeGroup ? 'Cliquer pour enregistrer' : 'Sélectionnez un groupe pour commencer';
+    }
+  }
+
+  function startWaveAnim() {
+    var bars = waveformEl.querySelectorAll('.waveform-bar');
+    waveInterv = setInterval(function(){
+      bars.forEach(function(b){ b.style.height = (Math.random()*36+4)+'px'; });
+    }, 100);
+  }
+  function stopWaveAnim() {
+    clearInterval(waveInterv);
+    waveformEl.querySelectorAll('.waveform-bar').forEach(function(b){ b.style.height='4px'; });
+  }
+
+  // ── Groups ──────────────────────────────────────────────────────────────────
+  function addGroup() {
+    var input = document.getElementById('newGroupInput');
+    var name  = input.value.trim();
+    if (!name) return;
+    if (groups.indexOf(name) !== -1) { showToast('Ce groupe existe déjà'); return; }
+    groups.push(name);
+    persistGroups();
+    input.value = '';
+    renderGroupSelect();
+    renderFilterTabs();
+    document.getElementById('groupSelect').value = name;
+    onGroupSelectChange();
+    showToast('Groupe « ' + name + ' » créé');
+  }
+
+  function deleteGroup(name) {
+    if (!confirm('Supprimer le groupe « ' + name + ' » ?\nLes notes du groupe seront conservées sans groupe.')) return;
+    groups = groups.filter(function(g){ return g !== name; });
+    notes.forEach(function(n){ if (n.group === name) n.group = ''; });
+    if (activeGroup === name) { activeGroup = ''; updateRecorderBadge(); }
+    if (filterGroup === name) filterGroup = null;
+    persistGroups();
+    persist();
+    renderGroupSelect();
+    renderFilterTabs();
+    renderNotes();
+    showToast('Groupe « ' + name + ' » supprimé');
+  }
+
+  function onGroupSelectChange() {
+    activeGroup = document.getElementById('groupSelect').value;
+    updateRecorderBadge();
+    var micBtn = document.getElementById('micBtn');
+    var status = document.getElementById('recorderStatus');
+    if (activeGroup) {
+      micBtn.classList.remove('disabled');
+      status.textContent = 'Cliquer pour enregistrer';
+    } else {
+      micBtn.classList.add('disabled');
+      status.textContent = 'Sélectionnez un groupe pour commencer';
+    }
+  }
+
+  function updateRecorderBadge() {
+    var badge = document.getElementById('recorderBadge');
+    var text  = document.getElementById('recorderBadgeText');
+    if (activeGroup) {
+      badge.classList.remove('none');
+      text.textContent = activeGroup;
+    } else {
+      badge.classList.add('none');
+      text.textContent = 'Aucun groupe sélectionné';
+    }
+  }
+
+  function renderGroupSelect() {
+    var sel = document.getElementById('groupSelect');
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">&#8212; Sélectionner un groupe &#8212;</option>';
+    groups.forEach(function(g){
+      var o = document.createElement('option');
+      o.value = g; o.textContent = g;
+      sel.appendChild(o);
+    });
+    if (groups.indexOf(cur) !== -1) sel.value = cur;
+  }
+
+  function renderFilterTabs() {
+    var row = document.getElementById('filterRow');
+    var allCount = notes.length;
+    var html = '<button class="filter-tab ' + (filterGroup === null ? 'active' : '') + '" onclick="setFilter(null)">'
+      + 'Tous <span class="tab-count">' + allCount + '</span></button>';
+
+    groups.forEach(function(g) {
+      var cnt = notes.filter(function(n){ return n.group === g; }).length;
+      var isActive = filterGroup === g;
+      html += '<button class="filter-tab ' + (isActive ? 'active' : '') + '" onclick="setFilter(\'' + escJs(g) + '\')">'
+        + escHtml(g) + ' <span class="tab-count">' + cnt + '</span>'
+        + '<span class="del-grp-btn" onclick="event.stopPropagation();deleteGroup(\'' + escJs(g) + '\')" title="Supprimer">&#x2715;</span>'
+        + '</button>';
+    });
+
+    var noGroupCount = notes.filter(function(n){ return !n.group; }).length;
+    if (noGroupCount > 0) {
+      html += '<button class="filter-tab ' + (filterGroup === '' ? 'active' : '') + '" onclick="setFilter(\'\')">'
+        + 'Sans groupe <span class="tab-count">' + noGroupCount + '</span></button>';
+    }
+    row.innerHTML = html;
+  }
+
+  function setFilter(g) {
+    filterGroup = g;
+    renderFilterTabs();
+    renderNotes();
+  }
+
+  // ── Notes CRUD ──────────────────────────────────────────────────────────────
+  function saveNote() {
+    var text = document.getElementById('transcriptLive').textContent.trim();
+    if (!text) return;
+    var note = { id: Date.now(), text: text, date: new Date().toISOString(), group: activeGroup };
+    notes.unshift(note);
+    persist();
+    renderFilterTabs();
+    renderNotes();
+    discardNote();
+    showToast('Note sauvegardée ✓');
+  }
+
+  function discardNote() {
+    currentTranscript = '';
+    document.getElementById('transcriptLive').textContent = '';
+    document.getElementById('recorderControls').style.display = 'none';
+    if (isRecording) stopRecording();
+  }
+
+  function deleteNote(id) {
+    notes = notes.filter(function(n){ return n.id !== id; });
+    persist();
+    renderFilterTabs();
+    renderNotes();
+    showToast('Note supprimée');
+  }
+
+  function clearAll() {
+    if (!notes.length) return;
+    var scope = filterGroup !== null
+      ? 'toutes les notes du groupe « ' + (filterGroup || 'Sans groupe') + ' »'
+      : 'toutes les notes';
+    if (!confirm('Supprimer ' + scope + ' ?')) return;
+    if (filterGroup !== null) {
+      var fg = filterGroup;
+      notes = notes.filter(function(n){ return n.group !== fg; });
+    } else {
+      notes = [];
+    }
+    persist();
+    renderFilterTabs();
+    renderNotes();
+  }
+
+  function updateNote(id, text) {
+    var note = notes.find(function(n){ return n.id === id; });
+    if (note) { note.text = text; persist(); }
+  }
+
+  function copyNote(id) {
+    var note = notes.find(function(n){ return n.id === id; });
+    if (note) navigator.clipboard.writeText(note.text).then(function(){ showToast('Copié !'); });
+  }
+
+  function persist()       { localStorage.setItem('vocalnotes_v2', JSON.stringify(notes)); }
+  function persistGroups() { localStorage.setItem('vocalnotes_groups', JSON.stringify(groups)); }
+
+  // ── Render ──────────────────────────────────────────────────────────────────
+  function renderNotes() {
+    var query = document.getElementById('searchBar').value.toLowerCase();
+    var list  = document.getElementById('notesList');
+    var count = document.getElementById('notesCount');
+
+    var filtered = notes.filter(function(n) {
+      var matchGroup = filterGroup === null || n.group === filterGroup;
+      var matchQuery = !query || n.text.toLowerCase().indexOf(query) !== -1;
+      return matchGroup && matchQuery;
+    });
+
+    count.textContent = filtered.length;
+
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-state"><div style="font-size:2rem">&#128219;</div>'
+        + '<p>' + (query ? 'Aucune note trouvée' : 'Aucune note dans ce groupe') + '</p></div>';
+      return;
+    }
+
+    if (filterGroup === null) {
+      var byGroup = {};
+      filtered.forEach(function(n) {
+        var key = n.group || '__none__';
+        if (!byGroup[key]) byGroup[key] = [];
+        byGroup[key].push(n);
+      });
+      var html = '';
+      groups.forEach(function(g) {
+        if (!byGroup[g]) return;
+        html += '<div class="group-divider"><span class="group-divider-label">'
+          + '<span style="width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block"></span>'
+          + escHtml(g) + '</span><div class="group-divider-line"></div></div>';
+        byGroup[g].forEach(function(note){ html += noteCardHTML(note, query, false); });
+      });
+      if (byGroup['__none__']) {
+        html += '<div class="group-divider"><span class="group-divider-label dim">Sans groupe</span>'
+          + '<div class="group-divider-line"></div></div>';
+        byGroup['__none__'].forEach(function(note){ html += noteCardHTML(note, query, false); });
+      }
+      list.innerHTML = html;
+    } else {
+      list.innerHTML = filtered.map(function(n){ return noteCardHTML(n, query, true); }).join('');
+    }
+  }
+
+  function noteCardHTML(note, query, showGroupTag) {
+    var d       = new Date(note.date);
+    var dateStr = d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+    var timeStr = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    var safeText = escHtml(note.text);
+    var highlighted = query
+      ? safeText.replace(new RegExp('(' + escRegex(escHtml(query)) + ')', 'gi'),
+          '<mark style="background:rgba(232,201,109,0.25);color:var(--accent)">$1</mark>')
+      : safeText;
+    var groupTag = (showGroupTag && note.group)
+      ? '<span class="note-group-tag">' + escHtml(note.group) + '</span>' : '';
+    return '<div class="note-card" id="note-' + note.id + '">'
+      + '<div>'
+      + '<div class="note-meta"><span>' + dateStr + '</span><span class="dot">&middot;</span><span>' + timeStr + '</span>' + groupTag + '</div>'
+      + '<div class="note-text" contenteditable="true" onblur="updateNote(' + note.id + ',this.innerText)" spellcheck="false">' + highlighted + '</div>'
+      + '</div>'
+      + '<div class="note-actions">'
+      + '<button class="note-btn" onclick="copyNote(' + note.id + ')" title="Copier">&#128203;</button>'
+      + '<button class="note-btn delete" onclick="deleteNote(' + note.id + ')" title="Supprimer">&#x2715;</button>'
+      + '</div></div>';
+  }
+
+  // ── Export ──────────────────────────────────────────────────────────────────
+  function exportTXT() {
+    if (!notes.length) { showToast('Aucune note à exporter'); return; }
+    var byGroup = {};
+    notes.forEach(function(n){
+      var key = n.group || 'Sans groupe';
+      if (!byGroup[key]) byGroup[key] = [];
+      byGroup[key].push(n);
+    });
+    var content = '';
+    Object.keys(byGroup).forEach(function(g){
+      content += Array(41).join('=') + '\n  ' + g.toUpperCase() + '\n' + Array(41).join('=') + '\n\n';
+      byGroup[g].forEach(function(n){
+        content += '[' + new Date(n.date).toLocaleString('fr-FR') + ']\n' + n.text + '\n' + Array(41).join('-') + '\n\n';
+      });
+    });
+    download('vocalnotes.txt', content, 'text/plain');
+    showToast('Export .txt téléchargé');
+  }
+
+  function exportJSON() {
+    if (!notes.length) { showToast('Aucune note à exporter'); return; }
+    download('vocalnotes.json', JSON.stringify({ groups: groups, notes: notes }, null, 2), 'application/json');
+    showToast('Export .json téléchargé');
+  }
+
+  function download(filename, content, type) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([content], {type: type}));
+    a.download = filename;
+    a.click();
+  }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escJs(s) { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+  function escRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+
+  // ── Toast ────────────────────────────────────────────────────────────────────
+  var toastTimer = null;
+  function showToast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2200);
+  }
+
+  // ── Boot ─────────────────────────────────────────────────────────────────────
+  renderGroupSelect();
+  renderFilterTabs();
+  renderNotes();
+</script>
+</body>
+</html>
