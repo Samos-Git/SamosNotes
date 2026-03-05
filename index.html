@@ -571,7 +571,7 @@
 
   <header>
     <h1>Samos Notes</h1>
-    <span class="version">v2.5</span>
+    <span class="version">v2.6</span>
     <div class="header-actions">
       <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
       <button class="btn" onclick="exportJSON()">&#8595; JSON</button>
@@ -715,11 +715,14 @@
     };
 
     rec.onend = function() {
+      // Commit this session's text into global transcript
       if (sessionText.trim()) {
         finalTranscript += sessionText;
+        sessionText = '';
         document.getElementById('transcriptLive').textContent = finalTranscript.trim();
       }
-      if (isRecording) setTimeout(launchSession, 100);
+      // Only relaunch if still recording (user hasn't pressed stop)
+      if (isRecording) setTimeout(launchSession, 150);
     };
 
     try { rec.start(); } catch(e) {}
@@ -728,15 +731,30 @@
   function stopRecording() {
     isRecording = false;
     if (recognition) {
-      recognition.onend = null; // prevent auto-restart
+      // Commit any in-progress session text before stopping
+      recognition.onend = function() {
+        recognition = null;
+        stopWaveAnim();
+        updateRecordingUI(false);
+        if (finalTranscript.trim()) {
+          document.getElementById('recorderControls').style.display = 'flex';
+        }
+      };
       recognition.onerror = null;
-      try { recognition.stop(); } catch(e){}
-      recognition = null;
-    }
-    stopWaveAnim();
-    updateRecordingUI(false);
-    if (finalTranscript.trim()) {
-      document.getElementById('recorderControls').style.display = 'flex';
+      try { recognition.stop(); } catch(e) {
+        recognition = null;
+        stopWaveAnim();
+        updateRecordingUI(false);
+        if (finalTranscript.trim()) {
+          document.getElementById('recorderControls').style.display = 'flex';
+        }
+      }
+    } else {
+      stopWaveAnim();
+      updateRecordingUI(false);
+      if (finalTranscript.trim()) {
+        document.getElementById('recorderControls').style.display = 'flex';
+      }
     }
   }
 
