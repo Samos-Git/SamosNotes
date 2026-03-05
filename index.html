@@ -571,7 +571,7 @@
 
   <header>
     <h1>Samos Notes</h1>
-    <span class="version">v2.4</span>
+    <span class="version">v2.5</span>
     <div class="header-actions">
       <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
       <button class="btn" onclick="exportJSON()">&#8595; JSON</button>
@@ -673,52 +673,56 @@
     finalTranscript = '';
     document.getElementById('transcriptLive').textContent = '';
     document.getElementById('recorderControls').style.display = 'none';
+    isRecording = true;
+    updateRecordingUI(true);
+    startWaveAnim();
+    launchSession();
+  }
 
-    recognition = new SR();
-    recognition.lang = 'fr-FR';
-    recognition.continuous = true;
-    recognition.interimResults = true;
+  function launchSession() {
+    if (!isRecording) return;
 
-    recognition.onresult = function(e) {
-      // Rebuild EVERYTHING from scratch on each event — safest approach
-      var final = '';
+    var sessionText = '';
+
+    var rec = new SR();
+    rec.lang = 'fr-FR';
+    rec.continuous = false;
+    rec.interimResults = true;
+    recognition = rec;
+
+    rec.onresult = function(e) {
+      sessionText = '';
       var interim = '';
       for (var i = 0; i < e.results.length; i++) {
         if (e.results[i].isFinal) {
-          final += e.results[i][0].transcript + ' ';
+          sessionText += e.results[i][0].transcript + ' ';
         } else {
           interim += e.results[i][0].transcript;
         }
       }
-      finalTranscript = final;
-      document.getElementById('transcriptLive').textContent = (final + interim).trim();
+      document.getElementById('transcriptLive').textContent =
+        (finalTranscript + sessionText + interim).trim();
     };
 
-    recognition.onerror = function(e) {
-      if (e.error === 'no-speech' || e.error === 'aborted') return;
+    rec.onerror = function(e) {
+      if (e.error === 'aborted') return;
+      if (e.error === 'no-speech') {
+        if (isRecording) setTimeout(launchSession, 100);
+        return;
+      }
       stopRecording();
       showToast('Erreur micro : ' + e.error);
     };
 
-    // On natural end: do NOT restart — Chrome with continuous=true rarely ends mid-speech.
-    // If it does end, just show what we have so the user can save.
-    recognition.onend = function() {
-      if (isRecording) {
-        // Session ended unexpectedly — stop cleanly
-        isRecording = false;
-        recognition = null;
-        stopWaveAnim();
-        updateRecordingUI(false);
-        if (finalTranscript.trim()) {
-          document.getElementById('recorderControls').style.display = 'flex';
-        }
+    rec.onend = function() {
+      if (sessionText.trim()) {
+        finalTranscript += sessionText;
+        document.getElementById('transcriptLive').textContent = finalTranscript.trim();
       }
+      if (isRecording) setTimeout(launchSession, 100);
     };
 
-    recognition.start();
-    isRecording = true;
-    updateRecordingUI(true);
-    startWaveAnim();
+    try { rec.start(); } catch(e) {}
   }
 
   function stopRecording() {
