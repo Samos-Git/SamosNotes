@@ -571,7 +571,7 @@
 
   <header>
     <h1>Samos Notes</h1>
-    <span class="version">v2.6</span>
+    <span class="version">v2.7</span>
     <div class="header-actions">
       <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
       <button class="btn" onclick="exportJSON()">&#8595; JSON</button>
@@ -669,21 +669,40 @@
     isRecording ? stopRecording() : startRecording();
   }
 
+  // ── Recording engine ────────────────────────────────────────────────────────
+  // Uses continuous=false sessions chained manually.
+  // Each session captures one utterance; onend commits it and starts fresh.
+  // A unique session ID prevents zombie sessions from interfering.
+
+  var sessionId = 0; // incremented each time we start a new session
+
   function startRecording() {
+    resetRecognition();
     finalTranscript = '';
     document.getElementById('transcriptLive').textContent = '';
     document.getElementById('recorderControls').style.display = 'none';
     isRecording = true;
     updateRecordingUI(true);
     startWaveAnim();
-    launchSession();
+    launchSession(++sessionId);
   }
 
-  function launchSession() {
-    if (!isRecording) return;
+  function resetRecognition() {
+    // Kill any existing recognition object cleanly
+    if (recognition) {
+      recognition.onresult = null;
+      recognition.onerror  = null;
+      recognition.onend    = null;
+      try { recognition.abort(); } catch(e) {}
+      recognition = null;
+    }
+  }
+
+  function launchSession(sid) {
+    // If session ID has changed or we stopped, bail out
+    if (!isRecording || sid !== sessionId) return;
 
     var sessionText = '';
-
     var rec = new SR();
     rec.lang = 'fr-FR';
     rec.continuous = false;
@@ -691,6 +710,7 @@
     recognition = rec;
 
     rec.onresult = function(e) {
+      if (sid !== sessionId) return;
       sessionText = '';
       var interim = '';
       for (var i = 0; i < e.results.length; i++) {
@@ -705,9 +725,10 @@
     };
 
     rec.onerror = function(e) {
-      if (e.error === 'aborted') return;
-      if (e.error === 'no-speech') {
-        if (isRecording) setTimeout(launchSession, 100);
+      if (sid !== sessionId) return;
+      if (e.error === 'aborted' || e.error === 'no-speech') {
+        // silence or abort — relaunch quietly
+        setTimeout(function(){ launchSession(sid); }, 200);
         return;
       }
       stopRecording();
@@ -715,46 +736,30 @@
     };
 
     rec.onend = function() {
-      // Commit this session's text into global transcript
+      if (sid !== sessionId) return;
+      // Commit this utterance
       if (sessionText.trim()) {
         finalTranscript += sessionText;
-        sessionText = '';
         document.getElementById('transcriptLive').textContent = finalTranscript.trim();
       }
-      // Only relaunch if still recording (user hasn't pressed stop)
-      if (isRecording) setTimeout(launchSession, 150);
+      recognition = null;
+      // Relaunch next session if still recording
+      if (isRecording) setTimeout(function(){ launchSession(sid); }, 150);
     };
 
-    try { rec.start(); } catch(e) {}
+    try { rec.start(); } catch(e) {
+      setTimeout(function(){ launchSession(sid); }, 300);
+    }
   }
 
   function stopRecording() {
     isRecording = false;
-    if (recognition) {
-      // Commit any in-progress session text before stopping
-      recognition.onend = function() {
-        recognition = null;
-        stopWaveAnim();
-        updateRecordingUI(false);
-        if (finalTranscript.trim()) {
-          document.getElementById('recorderControls').style.display = 'flex';
-        }
-      };
-      recognition.onerror = null;
-      try { recognition.stop(); } catch(e) {
-        recognition = null;
-        stopWaveAnim();
-        updateRecordingUI(false);
-        if (finalTranscript.trim()) {
-          document.getElementById('recorderControls').style.display = 'flex';
-        }
-      }
-    } else {
-      stopWaveAnim();
-      updateRecordingUI(false);
-      if (finalTranscript.trim()) {
-        document.getElementById('recorderControls').style.display = 'flex';
-      }
+    sessionId++; // invalidate any pending launchSession callbacks
+    resetRecognition();
+    stopWaveAnim();
+    updateRecordingUI(false);
+    if (finalTranscript.trim()) {
+      document.getElementById('recorderControls').style.display = 'flex';
     }
   }
 
@@ -894,10 +899,15 @@
   }
 
   function discardNote() {
+    // Stop any active recording first
+    if (isRecording) stopRecording();
+    // Then always fully reset state
+    resetRecognition();
     finalTranscript = '';
+    isRecording = false;
     document.getElementById('transcriptLive').textContent = '';
     document.getElementById('recorderControls').style.display = 'none';
-    if (isRecording) stopRecording();
+    updateRecordingUI(false);
   }
 
   function deleteNote(id) {
