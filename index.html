@@ -3,59 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VocalNotes — Notes vocales</title>
+  <title>Samos Notes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0d0d0d;
-      --surface: #161616;
-      --surface2: #1e1e1e;
-      --border: #2a2a2a;
-      --accent: #e8c96d;
-      --accent2: #c4a24a;
-      --text: #f0ede6;
-      --text-dim: #7a7670;
-      --red: #e05c5c;
-      --green: #5ce08a;
-      --radius: 4px;
+      --bg:       #f5f2ed;
+      --surface:  #ffffff;
+      --surface2: #f0ece5;
+      --border:   #ddd8d0;
+      --border2:  #c8c2b8;
+      --accent:   #2e6b4f;
+      --accent2:  #1e4d38;
+      --accent-light: #e8f4ee;
+      --text:     #1a1a18;
+      --text-dim: #8a8680;
+      --red:      #c0392b;
+      --red-bg:   #fdf0ee;
+      --radius:   6px;
+      --shadow:   0 1px 4px rgba(0,0,0,0.08);
+      --shadow-md:0 2px 12px rgba(0,0,0,0.1);
     }
 
     html, body {
-      height: 100%;
+      min-height: 100%;
       background: var(--bg);
       color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'DM Mono', monospace;
       font-size: 14px;
       line-height: 1.6;
     }
 
+    /* subtle linen texture */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 1000;
-      opacity: 0.4;
     }
 
     .app {
       max-width: 760px;
       margin: 0 auto;
-      padding: 48px 24px;
-      min-height: 100vh;
+      padding: 48px 24px 80px;
     }
 
+    /* ── Header ── */
     header {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 16px;
-      margin-bottom: 40px;
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 36px;
       padding-bottom: 24px;
+      border-bottom: 2px solid var(--border);
       flex-wrap: wrap;
     }
     header h1 {
@@ -65,11 +69,15 @@
       letter-spacing: -0.02em;
       color: var(--accent);
     }
-    header .version {
+    .version {
       color: var(--text-dim);
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: 3px;
     }
     .header-actions {
       margin-left: auto;
@@ -78,40 +86,44 @@
       flex-wrap: wrap;
     }
 
+    /* ── Buttons ── */
     .btn {
-      background: none;
-      border: 1px solid var(--border);
+      background: var(--surface);
+      border: 1px solid var(--border2);
       color: var(--text-dim);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'DM Mono', monospace;
       font-size: 11px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       padding: 8px 14px;
       cursor: pointer;
       border-radius: var(--radius);
       transition: all 0.15s;
+      box-shadow: var(--shadow);
     }
-    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
     .btn-accent {
       background: var(--accent);
       border-color: var(--accent);
-      color: #0d0d0d;
+      color: #fff;
       font-weight: 500;
+      box-shadow: 0 2px 8px rgba(46,107,79,0.25);
     }
-    .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); color: #0d0d0d; }
-    .btn-sm { padding: 5px 10px; font-size: 10px; }
+    .btn-accent:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+    .btn-sm { padding: 6px 12px; font-size: 10px; }
 
-    /* Group selector */
+    /* ── Group selector ── */
     .group-section {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 20px 24px;
-      margin-bottom: 16px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 14px;
       flex-wrap: wrap;
+      box-shadow: var(--shadow);
     }
     .group-label {
       font-size: 10px;
@@ -128,153 +140,154 @@
     .group-select {
       width: 100%;
       background: var(--surface2);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border2);
       border-radius: var(--radius);
       color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'DM Mono', monospace;
       font-size: 13px;
       padding: 9px 36px 9px 12px;
       appearance: none;
       cursor: pointer;
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .group-select:focus { border-color: var(--accent); }
-    .group-select option { background: var(--surface2); }
+    .group-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(46,107,79,0.12); }
     .group-select-arrow {
       position: absolute;
-      right: 11px;
-      top: 50%;
+      right: 11px; top: 50%;
       transform: translateY(-50%);
       pointer-events: none;
       color: var(--text-dim);
       font-size: 10px;
     }
-    .add-group-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .add-group-row { display: flex; gap: 8px; align-items: center; }
     .add-group-input {
       background: var(--surface2);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border2);
       border-radius: var(--radius);
       color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'DM Mono', monospace;
       font-size: 12px;
       padding: 7px 12px;
       outline: none;
       width: 160px;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .add-group-input:focus { border-color: var(--accent); }
+    .add-group-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(46,107,79,0.12); }
     .add-group-input::placeholder { color: var(--text-dim); }
     .group-required-hint {
       font-size: 11px;
       color: var(--red);
       display: none;
       margin-top: 6px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
+      padding: 8px 12px;
+      background: var(--red-bg);
+      border-radius: var(--radius);
+      border-left: 3px solid var(--red);
     }
 
-    /* Recorder */
+    /* ── Recorder ── */
     .recorder-zone {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 32px;
-      margin-bottom: 32px;
+      padding: 28px 32px;
+      margin-bottom: 28px;
       position: relative;
       overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: border-color 0.3s, box-shadow 0.3s;
     }
-    .recorder-zone::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--accent), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
+    .recorder-zone.recording {
+      border-color: #c0392b;
+      box-shadow: 0 0 0 3px rgba(192,57,43,0.08), var(--shadow-md);
     }
-    .recorder-zone.recording::before { opacity: 1; }
 
     .recorder-group-badge {
       text-align: center;
       margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
     .group-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 2px;
-      padding: 4px 12px;
+      gap: 7px;
+      background: var(--accent-light);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 5px 14px;
       font-size: 11px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
+      color: var(--accent2);
+      font-weight: 500;
     }
     .group-badge .badge-dot {
-      width: 6px; height: 6px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--accent);
       flex-shrink: 0;
     }
-    .group-badge.none { color: var(--text-dim); }
-    .group-badge.none .badge-dot { background: var(--text-dim); }
+    .group-badge.none {
+      background: var(--surface2);
+      border-color: var(--border2);
+      color: var(--text-dim);
+    }
+    .group-badge.none .badge-dot { background: var(--border2); }
 
     .mic-button {
-      width: 72px;
-      height: 72px;
+      width: 68px; height: 68px;
       border-radius: 50%;
-      border: 2px solid var(--border);
+      border: 2px solid var(--border2);
       background: var(--surface2);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 24px;
+      margin: 0 auto 20px;
       transition: all 0.2s;
+      box-shadow: var(--shadow);
     }
-    .mic-button:hover:not(.disabled) { border-color: var(--accent); }
+    .mic-button:hover:not(.disabled) {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      box-shadow: 0 3px 12px rgba(46,107,79,0.2);
+    }
     .mic-button.recording {
       border-color: var(--red);
-      background: rgba(224, 92, 92, 0.08);
+      background: var(--red-bg);
       animation: pulse 1.5s infinite;
     }
-    .mic-button.disabled { opacity: 0.35; cursor: not-allowed; }
+    .mic-button.disabled { opacity: 0.4; cursor: not-allowed; }
     @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(224,92,92,0.3); }
-      50% { box-shadow: 0 0 0 12px rgba(224,92,92,0); }
+      0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.25); }
+      50%      { box-shadow: 0 0 0 12px rgba(192,57,43,0); }
     }
-    .mic-icon { font-size: 28px; }
+    .mic-icon { font-size: 26px; }
 
     .waveform {
-      height: 48px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 3px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .waveform-bar {
       width: 3px;
       background: var(--border);
       border-radius: 2px;
-      transition: height 0.1s;
+      transition: height 0.08s;
     }
     .recording .waveform-bar { background: var(--red); }
 
     .recorder-status {
       text-align: center;
       color: var(--text-dim);
-      font-size: 12px;
-      letter-spacing: 0.1em;
+      font-size: 11px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .recording .recorder-status { color: var(--red); }
 
@@ -282,12 +295,12 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 16px;
-      min-height: 60px;
+      padding: 14px 16px;
+      min-height: 56px;
       font-size: 13px;
       color: var(--text);
       font-style: italic;
-      line-height: 1.7;
+      line-height: 1.75;
     }
     .transcript-live:empty::before {
       content: 'La transcription apparaîtra ici\2026';
@@ -298,45 +311,46 @@
     .recorder-controls {
       display: flex;
       gap: 10px;
-      margin-top: 20px;
+      margin-top: 18px;
       justify-content: center;
     }
 
-    /* Filter tabs */
+    /* ── Filter tabs ── */
     .filter-row {
       display: flex;
       gap: 6px;
       flex-wrap: wrap;
-      margin-bottom: 16px;
-      align-items: center;
+      margin-bottom: 14px;
     }
     .filter-tab {
-      background: none;
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 20px;
       color: var(--text-dim);
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'DM Mono', monospace;
       font-size: 10px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 5px 12px;
+      padding: 5px 13px;
       cursor: pointer;
       transition: all 0.15s;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      box-shadow: var(--shadow);
     }
-    .filter-tab:hover { border-color: var(--accent); color: var(--accent); }
+    .filter-tab:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
     .filter-tab.active {
       background: var(--accent);
       border-color: var(--accent);
-      color: #0d0d0d;
+      color: #fff;
       font-weight: 500;
+      box-shadow: 0 2px 8px rgba(46,107,79,0.2);
     }
-    .filter-tab .tab-count {
-      background: rgba(0,0,0,0.15);
-      border-radius: 2px;
-      padding: 1px 5px;
+    .tab-count {
+      background: rgba(0,0,0,0.12);
+      border-radius: 10px;
+      padding: 1px 6px;
       font-size: 9px;
     }
     .filter-tab:not(.active) .tab-count { background: var(--surface2); }
@@ -345,13 +359,12 @@
       font-size: 9px;
       transition: opacity 0.1s;
       cursor: pointer;
-      line-height: 1;
       margin-left: 2px;
     }
-    .filter-tab:hover .del-grp-btn { opacity: 0.6; }
+    .filter-tab:hover .del-grp-btn { opacity: 0.5; }
     .filter-tab:hover .del-grp-btn:hover { opacity: 1; color: var(--red); }
 
-    /* Notes */
+    /* ── Notes ── */
     .notes-header {
       display: flex;
       align-items: center;
@@ -360,38 +373,39 @@
     }
     .notes-header h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       font-weight: 400;
       font-style: italic;
       color: var(--text-dim);
     }
     .notes-count {
-      background: var(--surface2);
+      background: var(--surface);
       color: var(--text-dim);
       border: 1px solid var(--border);
-      border-radius: 2px;
+      border-radius: 10px;
       font-size: 10px;
-      padding: 2px 8px;
-      letter-spacing: 0.1em;
+      padding: 2px 9px;
+      letter-spacing: 0.08em;
     }
 
-    .notes-list { display: flex; flex-direction: column; gap: 10px; }
+    .notes-list { display: flex; flex-direction: column; gap: 8px; }
 
     .group-divider {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin: 8px 0 4px;
+      margin: 10px 0 4px;
     }
     .group-divider-label {
       font-size: 10px;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
       white-space: nowrap;
       display: flex;
       align-items: center;
       gap: 6px;
+      font-weight: 500;
     }
     .group-divider-label.dim { color: var(--text-dim); }
     .group-divider-line { flex: 1; height: 1px; background: var(--border); }
@@ -400,99 +414,145 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 16px 20px;
+      padding: 14px 18px;
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 8px;
       align-items: start;
-      transition: border-color 0.15s;
-      animation: slideIn 0.2s ease;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow);
+      animation: slideIn 0.18s ease;
     }
     @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .note-card:hover { border-color: #3a3a3a; }
+    .note-card:hover { border-color: var(--accent); box-shadow: var(--shadow-md); }
 
     .note-meta {
       font-size: 10px;
       color: var(--text-dim);
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       margin-bottom: 6px;
       display: flex;
       align-items: center;
       gap: 8px;
       flex-wrap: wrap;
     }
-    .note-meta .dot { color: var(--border); }
+    .note-meta .dot { color: var(--border2); }
     .note-group-tag {
-      background: rgba(232,201,109,0.1);
-      border: 1px solid rgba(232,201,109,0.2);
+      background: var(--accent-light);
+      border: 1px solid rgba(46,107,79,0.25);
       color: var(--accent2);
-      border-radius: 2px;
-      padding: 1px 7px;
+      border-radius: 10px;
+      padding: 1px 8px;
       font-size: 9px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .note-text {
       font-size: 13px;
       color: var(--text);
-      line-height: 1.7;
+      line-height: 1.75;
     }
     .note-text[contenteditable="true"] {
       outline: none;
-      border-bottom: 1px dashed var(--border);
+      border-bottom: 1px dashed var(--border2);
       padding-bottom: 2px;
     }
-    .note-text[contenteditable="true"]:focus { border-bottom-color: var(--accent); }
+    .note-text[contenteditable="true"]:focus {
+      border-bottom-color: var(--accent);
+    }
 
-    .note-actions { display: flex; gap: 6px; }
+    .note-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      background: var(--accent-light);
+      border: 1px solid rgba(46,107,79,0.2);
+      border-radius: 4px;
+      color: var(--accent2);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0;
+      padding: 0 5px;
+      flex-shrink: 0;
+    }
+
+    .note-actions { display: flex; gap: 6px; align-items: flex-start; padding-top: 2px; }
     .note-btn {
       background: none;
-      border: none;
+      border: 1px solid var(--border);
       cursor: pointer;
-      font-size: 14px;
-      padding: 4px;
-      opacity: 0.4;
-      transition: opacity 0.15s;
-      line-height: 1;
+      font-size: 12px;
+      padding: 5px 9px;
+      color: var(--text-dim);
+      transition: all 0.15s;
+      border-radius: var(--radius);
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
-    .note-btn:hover { opacity: 1; }
-    .note-btn.delete:hover { color: var(--red); }
+    .note-btn:hover { background: var(--surface2); border-color: var(--border2); color: var(--text); }
+    .note-btn.delete { border-color: rgba(192,57,43,0.25); color: var(--red); }
+    .note-btn.delete:hover { background: var(--red-bg); border-color: var(--red); }
 
+    /* ── Empty state ── */
     .empty-state {
       text-align: center;
-      padding: 48px;
+      padding: 52px;
       color: var(--text-dim);
-      border: 1px dashed var(--border);
+      border: 2px dashed var(--border);
       border-radius: var(--radius);
+      background: var(--surface);
     }
-    .empty-state p { font-size: 12px; letter-spacing: 0.05em; margin-top: 8px; }
+    .empty-state p { font-size: 12px; letter-spacing: 0.04em; margin-top: 10px; }
 
+    /* ── Search ── */
+    .search-bar {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      margin-bottom: 14px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      box-shadow: var(--shadow);
+    }
+    .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(46,107,79,0.1); }
+    .search-bar::placeholder { color: var(--text-dim); }
+
+    /* ── Toast ── */
     .toast {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      bottom: 24px; right: 24px;
       background: var(--accent);
-      color: #0d0d0d;
-      font-family: 'JetBrains Mono', monospace;
+      color: #fff;
+      font-family: 'DM Mono', monospace;
       font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       padding: 10px 18px;
       border-radius: var(--radius);
+      box-shadow: 0 4px 16px rgba(46,107,79,0.3);
       transform: translateY(80px);
       opacity: 0;
       transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-      z-index: 999;
+      z-index: 9999;
     }
     .toast.show { transform: translateY(0); opacity: 1; }
 
+    /* ── Warning ── */
     .warning {
-      background: rgba(224,92,92,0.07);
-      border: 1px solid rgba(224,92,92,0.2);
+      background: var(--red-bg);
+      border: 1px solid rgba(192,57,43,0.25);
       border-radius: var(--radius);
       padding: 12px 16px;
       font-size: 12px;
@@ -501,32 +561,16 @@
       display: none;
     }
 
-    .search-bar {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 10px 14px;
-      color: var(--text);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      margin-bottom: 16px;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .search-bar:focus { border-color: var(--accent); }
-    .search-bar::placeholder { color: var(--text-dim); }
-
-    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
   </style>
 </head>
 <body>
 <div class="app">
 
   <header>
-    <h1>VocalNotes</h1>
+    <h1>Samos Notes</h1>
     <span class="version">v2.0</span>
     <div class="header-actions">
       <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
@@ -579,14 +623,12 @@
     &#9888; Votre navigateur ne supporte pas la reconnaissance vocale. Essayez Chrome ou Edge.
   </div>
 
-  <!-- Notes -->
   <div class="notes-header">
     <h2>Notes enregistrées</h2>
     <span class="notes-count" id="notesCount">0</span>
   </div>
 
   <input class="search-bar" id="searchBar" type="text" placeholder="&#128269;  Rechercher dans les notes…" oninput="renderNotes()">
-
   <div class="filter-row" id="filterRow"></div>
   <div class="notes-list" id="notesList"></div>
 </div>
@@ -600,21 +642,22 @@
   var filterGroup = null;
   var recognition = null;
   var isRecording = false;
-  var currentTranscript = '';
+  var finalTranscript = '';   // accumulates only confirmed final segments
   var waveInterv  = null;
 
   // waveform bars
   var waveformEl = document.getElementById('waveform');
-  for (var i = 0; i < 28; i++) {
-    var bar = document.createElement('div');
-    bar.className = 'waveform-bar';
-    bar.style.height = '4px';
-    waveformEl.appendChild(bar);
+  for (var wi = 0; wi < 28; wi++) {
+    var wbar = document.createElement('div');
+    wbar.className = 'waveform-bar';
+    wbar.style.height = '4px';
+    waveformEl.appendChild(wbar);
   }
 
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) document.getElementById('warningBrowser').style.display = 'block';
 
+  // ── Recording ────────────────────────────────────────────────────────────────
   function toggleRecording() {
     if (!SR) return;
     if (!activeGroup) {
@@ -627,25 +670,49 @@
   }
 
   function startRecording() {
+    // Reset transcript state completely
+    finalTranscript = '';
+    document.getElementById('transcriptLive').textContent = '';
+    document.getElementById('recorderControls').style.display = 'none';
+
     recognition = new SR();
     recognition.lang = 'fr-FR';
     recognition.continuous = true;
     recognition.interimResults = true;
-    currentTranscript = '';
-    document.getElementById('transcriptLive').textContent = '';
 
     recognition.onresult = function(e) {
-      var interim = '', final = '';
+      // Rebuild from scratch each event to avoid duplication
+      // finalTranscript accumulates confirmed text
+      // interim is only from the current unconfirmed result
+      var newFinal = '';
+      var interim  = '';
+
       for (var i = e.resultIndex; i < e.results.length; i++) {
-        var t = e.results[i][0].transcript;
-        if (e.results[i].isFinal) final += t + ' ';
-        else interim += t;
+        if (e.results[i].isFinal) {
+          newFinal += e.results[i][0].transcript;
+        } else {
+          interim += e.results[i][0].transcript;
+        }
       }
-      currentTranscript += final;
-      document.getElementById('transcriptLive').textContent = currentTranscript + interim;
+
+      if (newFinal) finalTranscript += newFinal + ' ';
+      document.getElementById('transcriptLive').textContent = finalTranscript + interim;
     };
-    recognition.onerror = function(e) { stopRecording(); showToast('Erreur micro : ' + e.error); };
-    recognition.onend   = function() { if (isRecording) recognition.start(); };
+
+    recognition.onerror = function(e) {
+      if (e.error === 'no-speech') return; // ignore silence
+      stopRecording();
+      showToast('Erreur micro : ' + e.error);
+    };
+
+    // Auto-restart on end ONLY if still supposed to be recording
+    // Use a named handler so we can remove it cleanly
+    recognition.onend = function() {
+      if (isRecording) {
+        try { recognition.start(); } catch(err) {}
+      }
+    };
+
     recognition.start();
     isRecording = true;
     updateRecordingUI(true);
@@ -654,10 +721,17 @@
 
   function stopRecording() {
     isRecording = false;
-    if (recognition) { recognition.onend = null; recognition.stop(); }
+    if (recognition) {
+      recognition.onend = null; // prevent auto-restart
+      recognition.onerror = null;
+      try { recognition.stop(); } catch(e){}
+      recognition = null;
+    }
     stopWaveAnim();
     updateRecordingUI(false);
-    if (currentTranscript.trim()) document.getElementById('recorderControls').style.display = 'flex';
+    if (finalTranscript.trim()) {
+      document.getElementById('recorderControls').style.display = 'flex';
+    }
   }
 
   function updateRecordingUI(rec) {
@@ -690,7 +764,7 @@
     waveformEl.querySelectorAll('.waveform-bar').forEach(function(b){ b.style.height='4px'; });
   }
 
-  // ── Groups ──────────────────────────────────────────────────────────────────
+  // ── Groups ───────────────────────────────────────────────────────────────────
   function addGroup() {
     var input = document.getElementById('newGroupInput');
     var name  = input.value.trim();
@@ -760,36 +834,31 @@
 
   function renderFilterTabs() {
     var row = document.getElementById('filterRow');
-    var allCount = notes.length;
     var html = '<button class="filter-tab ' + (filterGroup === null ? 'active' : '') + '" onclick="setFilter(null)">'
-      + 'Tous <span class="tab-count">' + allCount + '</span></button>';
+      + 'Tous <span class="tab-count">' + notes.length + '</span></button>';
 
     groups.forEach(function(g) {
       var cnt = notes.filter(function(n){ return n.group === g; }).length;
-      var isActive = filterGroup === g;
-      html += '<button class="filter-tab ' + (isActive ? 'active' : '') + '" onclick="setFilter(\'' + escJs(g) + '\')">'
-        + escHtml(g) + ' <span class="tab-count">' + cnt + '</span>'
+      html += '<button class="filter-tab ' + (filterGroup === g ? 'active' : '') + '" onclick="setFilter(\'' + escJs(g) + '\')">'
+        + escHtml(g)
+        + ' <span class="tab-count">' + cnt + '</span>'
         + '<span class="del-grp-btn" onclick="event.stopPropagation();deleteGroup(\'' + escJs(g) + '\')" title="Supprimer">&#x2715;</span>'
         + '</button>';
     });
 
-    var noGroupCount = notes.filter(function(n){ return !n.group; }).length;
-    if (noGroupCount > 0) {
+    var ngc = notes.filter(function(n){ return !n.group; }).length;
+    if (ngc > 0) {
       html += '<button class="filter-tab ' + (filterGroup === '' ? 'active' : '') + '" onclick="setFilter(\'\')">'
-        + 'Sans groupe <span class="tab-count">' + noGroupCount + '</span></button>';
+        + 'Sans groupe <span class="tab-count">' + ngc + '</span></button>';
     }
     row.innerHTML = html;
   }
 
-  function setFilter(g) {
-    filterGroup = g;
-    renderFilterTabs();
-    renderNotes();
-  }
+  function setFilter(g) { filterGroup = g; renderFilterTabs(); renderNotes(); }
 
-  // ── Notes CRUD ──────────────────────────────────────────────────────────────
+  // ── Notes CRUD ───────────────────────────────────────────────────────────────
   function saveNote() {
-    var text = document.getElementById('transcriptLive').textContent.trim();
+    var text = (document.getElementById('transcriptLive').textContent || '').trim();
     if (!text) return;
     var note = { id: Date.now(), text: text, date: new Date().toISOString(), group: activeGroup };
     notes.unshift(note);
@@ -797,11 +866,11 @@
     renderFilterTabs();
     renderNotes();
     discardNote();
-    showToast('Note sauvegardée ✓');
+    showToast('Note sauvegardée \u2713');
   }
 
   function discardNote() {
-    currentTranscript = '';
+    finalTranscript = '';
     document.getElementById('transcriptLive').textContent = '';
     document.getElementById('recorderControls').style.display = 'none';
     if (isRecording) stopRecording();
@@ -834,7 +903,7 @@
 
   function updateNote(id, text) {
     var note = notes.find(function(n){ return n.id === id; });
-    if (note) { note.text = text; persist(); }
+    if (note && note.text !== text) { note.text = text; persist(); }
   }
 
   function copyNote(id) {
@@ -845,27 +914,27 @@
   function persist()       { localStorage.setItem('vocalnotes_v2', JSON.stringify(notes)); }
   function persistGroups() { localStorage.setItem('vocalnotes_groups', JSON.stringify(groups)); }
 
-  // ── Render ──────────────────────────────────────────────────────────────────
+  // ── Render notes ─────────────────────────────────────────────────────────────
   function renderNotes() {
     var query = document.getElementById('searchBar').value.toLowerCase();
     var list  = document.getElementById('notesList');
     var count = document.getElementById('notesCount');
 
     var filtered = notes.filter(function(n) {
-      var matchGroup = filterGroup === null || n.group === filterGroup;
-      var matchQuery = !query || n.text.toLowerCase().indexOf(query) !== -1;
-      return matchGroup && matchQuery;
+      var mg = filterGroup === null || n.group === filterGroup;
+      var mq = !query || n.text.toLowerCase().indexOf(query) !== -1;
+      return mg && mq;
     });
-
     count.textContent = filtered.length;
 
     if (!filtered.length) {
-      list.innerHTML = '<div class="empty-state"><div style="font-size:2rem">&#128219;</div>'
-        + '<p>' + (query ? 'Aucune note trouvée' : 'Aucune note dans ce groupe') + '</p></div>';
+      list.innerHTML = '<div class="empty-state"><div style="font-size:2.2rem">&#128203;</div>'
+        + '<p>' + (query ? 'Aucune note trouvée pour cette recherche.' : 'Aucune note ici — enregistrez votre première note vocale.') + '</p></div>';
       return;
     }
 
     if (filterGroup === null) {
+      // Group by group name
       var byGroup = {};
       filtered.forEach(function(n) {
         var key = n.group || '__none__';
@@ -873,87 +942,89 @@
         byGroup[key].push(n);
       });
       var html = '';
+      var globalNum = filtered.length; // number descending (most recent = highest)
       groups.forEach(function(g) {
         if (!byGroup[g]) return;
-        html += '<div class="group-divider"><span class="group-divider-label">'
-          + '<span style="width:6px;height:6px;background:var(--accent);border-radius:50%;display:inline-block"></span>'
+        html += '<div class="group-divider">'
+          + '<span class="group-divider-label">'
+          + '<span style="width:7px;height:7px;background:var(--accent);border-radius:50%;display:inline-block;flex-shrink:0"></span>'
           + escHtml(g) + '</span><div class="group-divider-line"></div></div>';
-        byGroup[g].forEach(function(note){ html += noteCardHTML(note, query, false); });
+        byGroup[g].forEach(function(n){ html += noteCardHTML(n, query, false, globalNum--); });
       });
       if (byGroup['__none__']) {
         html += '<div class="group-divider"><span class="group-divider-label dim">Sans groupe</span>'
           + '<div class="group-divider-line"></div></div>';
-        byGroup['__none__'].forEach(function(note){ html += noteCardHTML(note, query, false); });
+        byGroup['__none__'].forEach(function(n){ html += noteCardHTML(n, query, false, globalNum--); });
       }
       list.innerHTML = html;
     } else {
-      list.innerHTML = filtered.map(function(n){ return noteCardHTML(n, query, true); }).join('');
+      list.innerHTML = filtered.map(function(n, i){ return noteCardHTML(n, query, false, filtered.length - i); }).join('');
     }
   }
 
-  function noteCardHTML(note, query, showGroupTag) {
+  function noteCardHTML(note, query, showTag, num) {
     var d       = new Date(note.date);
     var dateStr = d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
     var timeStr = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
-    var safeText = escHtml(note.text);
-    var highlighted = query
-      ? safeText.replace(new RegExp('(' + escRegex(escHtml(query)) + ')', 'gi'),
-          '<mark style="background:rgba(232,201,109,0.25);color:var(--accent)">$1</mark>')
-      : safeText;
-    var groupTag = (showGroupTag && note.group)
-      ? '<span class="note-group-tag">' + escHtml(note.group) + '</span>' : '';
-    return '<div class="note-card" id="note-' + note.id + '">'
+    var safe    = escHtml(note.text);
+    var body    = query
+      ? safe.replace(new RegExp('(' + escRegex(escHtml(query)) + ')', 'gi'),
+          '<mark style="background:#d4edda;color:#155724;border-radius:2px;padding:0 2px">$1</mark>')
+      : safe;
+    var tag = (showTag && note.group) ? '<span class="note-group-tag">' + escHtml(note.group) + '</span>' : '';
+    return '<div class="note-card">'
       + '<div>'
-      + '<div class="note-meta"><span>' + dateStr + '</span><span class="dot">&middot;</span><span>' + timeStr + '</span>' + groupTag + '</div>'
-      + '<div class="note-text" contenteditable="true" onblur="updateNote(' + note.id + ',this.innerText)" spellcheck="false">' + highlighted + '</div>'
+      + '<div class="note-meta">'
+      + '<span class="note-number">#' + num + '</span>'
+      + '<span>' + dateStr + '</span><span class="dot">&middot;</span><span>' + timeStr + '</span>' + tag
+      + '</div>'
+      + '<div class="note-text" contenteditable="true" onblur="updateNote(' + note.id + ',this.innerText)" spellcheck="false">' + body + '</div>'
       + '</div>'
       + '<div class="note-actions">'
-      + '<button class="note-btn" onclick="copyNote(' + note.id + ')" title="Copier">&#128203;</button>'
-      + '<button class="note-btn delete" onclick="deleteNote(' + note.id + ')" title="Supprimer">&#x2715;</button>'
+      + '<button class="note-btn" onclick="copyNote(' + note.id + ')" title="Copier">&#128203; Copier</button>'
+      + '<button class="note-btn delete" onclick="deleteNote(' + note.id + ')" title="Supprimer">&#x2715; Supprimer</button>'
       + '</div></div>';
   }
 
-  // ── Export ──────────────────────────────────────────────────────────────────
+  // ── Export ───────────────────────────────────────────────────────────────────
   function exportTXT() {
     if (!notes.length) { showToast('Aucune note à exporter'); return; }
     var byGroup = {};
     notes.forEach(function(n){
-      var key = n.group || 'Sans groupe';
-      if (!byGroup[key]) byGroup[key] = [];
-      byGroup[key].push(n);
+      var k = n.group || 'Sans groupe';
+      if (!byGroup[k]) byGroup[k] = [];
+      byGroup[k].push(n);
     });
     var content = '';
     Object.keys(byGroup).forEach(function(g){
-      content += Array(41).join('=') + '\n  ' + g.toUpperCase() + '\n' + Array(41).join('=') + '\n\n';
+      content += Array(42).join('=') + '\n  ' + g.toUpperCase() + '\n' + Array(42).join('=') + '\n\n';
       byGroup[g].forEach(function(n){
-        content += '[' + new Date(n.date).toLocaleString('fr-FR') + ']\n' + n.text + '\n' + Array(41).join('-') + '\n\n';
+        content += '[' + new Date(n.date).toLocaleString('fr-FR') + ']\n' + n.text + '\n' + Array(42).join('-') + '\n\n';
       });
     });
-    download('vocalnotes.txt', content, 'text/plain');
+    dl('samos-notes.txt', content, 'text/plain');
     showToast('Export .txt téléchargé');
   }
 
   function exportJSON() {
     if (!notes.length) { showToast('Aucune note à exporter'); return; }
-    download('vocalnotes.json', JSON.stringify({ groups: groups, notes: notes }, null, 2), 'application/json');
+    dl('samos-notes.json', JSON.stringify({ groups: groups, notes: notes }, null, 2), 'application/json');
     showToast('Export .json téléchargé');
   }
 
-  function download(filename, content, type) {
+  function dl(filename, content, type) {
     var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([content], {type: type}));
     a.download = filename;
     a.click();
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
-  function escHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-  function escJs(s) { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
-  function escRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+  function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function escJs(s)  { return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+  function escRegex(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
 
-  // ── Toast ────────────────────────────────────────────────────────────────────
+  // ── Toast ─────────────────────────────────────────────────────────────────────
   var toastTimer = null;
   function showToast(msg) {
     var el = document.getElementById('toast');
@@ -963,7 +1034,7 @@
     toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2200);
   }
 
-  // ── Boot ─────────────────────────────────────────────────────────────────────
+  // ── Boot ──────────────────────────────────────────────────────────────────────
   renderGroupSelect();
   renderFilterTabs();
   renderNotes();
