@@ -583,10 +583,12 @@
 
   <header>
     <h1>Samos Notes</h1>
-    <span class="version">v2.8</span>
+    <span class="version">v2.9</span>
     <div class="header-actions">
       <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
       <button class="btn" onclick="exportJSON()">&#8595; JSON</button>
+      <button class="btn" onclick="triggerImport()">&#8593; Importer JSON</button>
+      <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(this)">
       <button class="btn" onclick="clearAll()">&#x2715; Effacer</button>
     </div>
   </header>
@@ -1058,6 +1060,50 @@
     if (!notes.length) { showToast('Aucune note à exporter'); return; }
     dl('samos-notes.json', JSON.stringify({ groups: groups, notes: notes }, null, 2), 'application/json');
     showToast('Export .json téléchargé');
+  }
+
+  function triggerImport() {
+    document.getElementById('importInput').value = '';
+    document.getElementById('importInput').click();
+  }
+
+  function importJSON(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        var data = JSON.parse(e.target.result);
+        // Accept both {groups, notes} format and plain array of notes
+        var importedNotes  = Array.isArray(data) ? data : (data.notes  || []);
+        var importedGroups = Array.isArray(data) ? []   : (data.groups || []);
+
+        // Validate basic structure
+        if (!Array.isArray(importedNotes)) throw new Error('Format invalide');
+
+        if (!confirm(
+          'Importer ' + importedNotes.length + ' note(s) et ' + importedGroups.length + ' groupe(s) ?\n' +
+          'Cela remplacera toutes les données actuelles.'
+        )) return;
+
+        notes  = importedNotes;
+        groups = importedGroups;
+        persist();
+        persistGroups();
+        // Reset UI state
+        activeGroup = '';
+        filterGroup = null;
+        renderGroupSelect();
+        renderFilterTabs();
+        renderNotes();
+        updateRecorderBadge();
+        onGroupSelectChange();
+        showToast(importedNotes.length + ' notes importées ✓');
+      } catch(err) {
+        showToast('Erreur : fichier JSON invalide');
+      }
+    };
+    reader.readAsText(file);
   }
 
   function dl(filename, content, type) {
