@@ -511,6 +511,9 @@
     .note-btn:hover { background: var(--surface2); border-color: var(--border2); color: var(--text); }
     .note-btn.delete { border-color: rgba(192,57,43,0.25); color: var(--red); }
     .note-btn.delete:hover { background: var(--red-bg); border-color: var(--red); }
+    .note-btn.save { border-color: rgba(46,107,79,0.3); color: var(--accent); animation: fadeIn .15s ease; }
+    .note-btn.save:hover { background: var(--accent-light); border-color: var(--accent); }
+    @keyframes fadeIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
 
     /* ── Empty state ── */
     .empty-state {
@@ -583,7 +586,7 @@
 
   <header>
     <h1>Samos Notes</h1>
-    <span class="version">v2.9</span>
+    <span class="version">v3.1</span>
     <div class="header-actions">
       <button class="btn" onclick="exportTXT()">&#8595; .txt</button>
       <button class="btn" onclick="exportJSON()">&#8595; JSON</button>
@@ -949,6 +952,33 @@
     renderNotes();
   }
 
+  function onNoteInput(id) {
+    var actions = document.getElementById('actions-' + id);
+    if (!actions) return;
+    if (!document.getElementById('save-btn-' + id)) {
+      var btn = document.createElement('button');
+      btn.className = 'note-btn save';
+      btn.id = 'save-btn-' + id;
+      btn.title = 'Enregistrer';
+      btn.textContent = '✓ Enregistrer';
+      btn.onclick = function() { saveNoteEdit(id); };
+      actions.insertBefore(btn, actions.firstChild);
+    }
+  }
+
+  function saveNoteEdit(id) {
+    var card = document.getElementById('card-' + id);
+    if (!card) return;
+    var textEl = card.querySelector('.note-text');
+    var text = textEl ? textEl.innerText.trim() : '';
+    if (!text) return;
+    updateNote(id, text);
+    // Remove save button
+    var btn = document.getElementById('save-btn-' + id);
+    if (btn) btn.remove();
+    showToast('Modification enregistrée ✓');
+  }
+
   function updateNote(id, text) {
     var note = notes.find(function(n){ return n.id === id; });
     if (note && note.text !== text) { note.text = text; persist(); }
@@ -1020,19 +1050,21 @@
           '<mark style="background:#d4edda;color:#155724;border-radius:2px;padding:0 2px">$1</mark>')
       : safe;
     var tag = (showTag && note.group) ? '<span class="note-group-tag">' + escHtml(note.group) + '</span>' : '';
-    return '<div class="note-card">'
+    return '<div class="note-card" id="card-' + note.id + '">'
       + '<div class="note-header">'
       +   '<div class="note-header-left">'
       +     '<span class="note-number">#' + num + '</span>'
+      +     '<span class="note-meta"><span>' + dateStr + '</span><span class="dot">&middot;</span><span>' + timeStr + '</span></span>'
       +     tag
       +   '</div>'
-      +   '<div class="note-actions">'
-      +     '<button class="note-btn" onclick="copyNote(' + note.id + ')" title="Copier">&#128203; Copier</button>'
+      +   '<div class="note-actions" id="actions-' + note.id + '">'
       +     '<button class="note-btn delete" onclick="deleteNote(' + note.id + ')" title="Supprimer">&#x2715; Supprimer</button>'
       +   '</div>'
       + '</div>'
-      + '<div class="note-meta"><span>' + dateStr + '</span><span class="dot">&middot;</span><span>' + timeStr + '</span></div>'
-      + '<div class="note-text" contenteditable="true" onblur="updateNote(' + note.id + ',this.innerText)" spellcheck="false">' + body + '</div>'
+      + '<div class="note-text" contenteditable="true"'
+      +   ' oninput="onNoteInput(' + note.id + ')"'
+      +   ' onblur="false"'
+      +   ' spellcheck="false">' + body + '</div>'
       + '</div>';
   }
 
